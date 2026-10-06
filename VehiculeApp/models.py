@@ -1,9 +1,10 @@
 from django.db import models
 from .models import Entreprise  # À ne pas ajouter si Entreprise est définie dans ce même fichier
+from django.core.validators import MinValueValidator
 
 class Vehicule(models.Model):
     immatriculation = models.CharField(max_length=11, unique=True)
-    capacite_kg = models.IntegerField()
+    capacite_kg = models.IntegerField(validators=[MinValueValidator(100,"capacite doit etre sup a 100 kg")])
     disponibilite = models.BooleanField(default=True)
 
     type_vehicule = models.CharField(

@@ -1,6 +1,6 @@
 from django.db import models
 from django .contrib.auth.models import AbstractUser
-
+from django.core.validators import validators
 class utilisateur(AbstractUser):
     user_id = models.CharField(max_length=8, primary_key = True)
     email = models.EmailField(unique=True)
@@ -30,7 +30,7 @@ class Entreprise(models.Model):
         default='chargeur'
     )
 
-    adresse = models.TextField()
+    adresse = models.TextField(validators=[MinLengthValidator=(20 ,"ladresse doit avoir au moins 20 char" ]), MaxLengthValidator 300,"ladresse ne peut pas depasser les 300 char") 
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
