@@ -1,3 +1,11 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Offre
+
+
+class OffreAdmin(admin.ModelAdmin):
+    list_display = ('id', 'expedition', 'transporteur', 'vehicule', 'prix', 'delai_jours', 'statut')
+    list_filter = ('statut',)
+
+
+admin.site.register(Offre, OffreAdmin)

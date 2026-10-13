@@ -5,11 +5,25 @@ from django.core.exceptions import ValidationError
 
 class Vehicule(models.Model):
 
+    TYPE_CHOICES = [
+        ('camionnette', 'Camionnette / utilitaire léger'),
+        ('camion_porteur', 'Camion porteur'),
+        ('semi_remorque', 'Semi-remorque'),
+        ('fourgon', 'Fourgon'),
+    ]
+
     immatriculation = models.CharField(
         max_length=11,
         unique=True
     )
 
+    type_vehicule = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default='camionnette'
+    )
+
+    # Une capacité nulle (ou négative) est refusée
     capacite_kg = models.IntegerField(
         validators=[
             MinValueValidator(
@@ -19,43 +33,36 @@ class Vehicule(models.Model):
         ]
     )
 
-    disponibilite = models.BooleanField(
-        default=True
-    )
+    disponible = models.BooleanField(default=True)
 
-    type_vehicule = models.CharField(
-        max_length=20,
-        choices=[
-            ('camionette', 'Camionnette'),
-            ('remorque', 'Remorque'),
-            ('forgon', 'Fourgon'),
-            ('porteur', 'Porteur'),
-        ],
-        default='camionette'
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True
-    )
-
-    proprietaire = models.ForeignKey(
+    # Relation "possède" : Entreprise 1 --- * Vehicule
+    entreprise = models.ForeignKey(
         'EntrepriseApp.Entreprise',
         on_delete=models.CASCADE,
         related_name='vehicules'
     )
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def clean(self):
+        super().clean()
+
+        # Règle métier : l'entreprise doit être un transporteur
         if (
-            self.proprietaire
-            and self.proprietaire.type_entreprise != 'transporteur'
+            self.entreprise_id
+            and self.entreprise.type_entreprise != 'transporteur'
         ):
-            raise ValidationError(
-                "Le propriétaire du véhicule doit être une entreprise de type transporteur."
-            )
+            raise ValidationError({
+                'entreprise': (
+                    "Le propriétaire du véhicule doit être "
+                    "une entreprise de type transporteur."
+                )
+            })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.immatriculation

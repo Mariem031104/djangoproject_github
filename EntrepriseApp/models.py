@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator, MinLengthValidator
@@ -8,6 +7,7 @@ from django.utils import timezone
 
 
 class Utilisateur(AbstractUser):
+    # Format : AAuserNN (ex. 26user00)
     user_id = models.CharField(
         max_length=8,
         primary_key=True,
@@ -19,6 +19,7 @@ class Utilisateur(AbstractUser):
         ]
     )
 
+    # Seuls les emails gmail.com sont acceptés
     email = models.EmailField(
         unique=True,
         validators=[
@@ -48,6 +49,7 @@ class Utilisateur(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        # Génération de l'identifiant à la première sauvegarde
         if not self.user_id:
             annee = timezone.now().year % 100
             prefixe = f"{annee:02d}user"
@@ -81,8 +83,7 @@ class Utilisateur(AbstractUser):
 class Entreprise(models.Model):
     raison_sociale = models.CharField(max_length=100)
 
-    # Nom conserve pour correspondre a la migration initiale
-    matricule_fiscale = models.CharField(
+    matricule_fiscal = models.CharField(
         max_length=17,
         unique=True,
         validators=[
@@ -107,6 +108,7 @@ class Entreprise(models.Model):
         default='chargeur'
     )
 
+    # Minimum 20 caractères
     adresse = models.TextField(
         validators=[
             MinLengthValidator(
@@ -116,7 +118,7 @@ class Entreprise(models.Model):
         ]
     )
 
-    # Nom conserve pour correspondre a la migration initiale
+    # Relation "gère" : Utilisateur 1 --- 1 Entreprise
     gerant = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
